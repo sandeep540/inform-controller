@@ -42,8 +42,8 @@ func main() {
 	informerfactory := informers.NewFilteredSharedInformerFactory(clientset, 10*time.Minute, "default", tweakOptions)
 	informer := informerfactory.Apps().V1().Deployments()
 
-	stopper := make(chan struct{})
-	defer close(stopper)
+	//stopper := make(chan struct{})
+	//defer close(stopper)
 
 	informer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
@@ -53,11 +53,11 @@ func main() {
 			fmt.Printf("Deployment is updated \n")
 		},
 		DeleteFunc: func(obj interface{}) {
-			fmt.Printf("Deployment Pod triggered \n")
+			fmt.Printf("Deployment Delete triggered \n")
 		},
 	})
 
-	informer.Informer().Run(stopper)
+	//informer.Informer().Run(stopper)
 
 	informerfactory.Start(wait.NeverStop)
 	informerfactory.WaitForCacheSync(wait.NeverStop)
@@ -66,5 +66,8 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("deployment: %v\n", deployment.Name)
+
+	//To make sure it never stops
+	<-wait.NeverStop
 
 }
