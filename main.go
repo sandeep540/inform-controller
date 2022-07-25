@@ -42,6 +42,9 @@ func main() {
 	informerfactory := informers.NewFilteredSharedInformerFactory(clientset, 10*time.Minute, "default", tweakOptions)
 	informer := informerfactory.Apps().V1().Deployments()
 
+	stopper := make(chan struct{})
+	defer close(stopper)
+
 	informer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			fmt.Printf("New Deployment is created \n")
@@ -53,6 +56,9 @@ func main() {
 			fmt.Printf("Deployment Pod triggered \n")
 		},
 	})
+
+	informer.Informer().Run(stopper)
+
 	informerfactory.Start(wait.NeverStop)
 	informerfactory.WaitForCacheSync(wait.NeverStop)
 	deployment, err := informer.Lister().Deployments("default").Get("k8s-dev")
